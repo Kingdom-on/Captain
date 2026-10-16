@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>كابتن</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#101214">
+<style>
+:root{--bg:#101214;--panel:#17191c;--card:#222529;--tx:#f2f3f5;--mut:#8b9096;--ac:#1e8cff;--ok:#1fa463;--bad:#e5484d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#101214}}
+*{box-sizing:inherit;font-family:system-ui,"Segoe UI",Tahoma,sans-serif}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--tx)}
+#app{position:relative;height:100%;max-width:520px;margin:auto;overflow:hidden;display:flex;flex-direction:column}
+#map{position:absolute;inset:0;background:
+ linear-gradient(90deg,transparent 48%,#2a3340 48% 52%,transparent 52%) 0 0/160px 160px,
+ linear-gradient(0deg,transparent 47%,#2a3340 47% 53%,transparent 53%) 0 0/200px 200px,
+ repeating-linear-gradient(35deg,#1a2028 0 22px,#1d242d 22px 44px);opacity:.9}
+#me{position:absolute;left:50%;top:48%;width:20px;height:20px;border-radius:50%;background:var(--ac);border:4px solid #fff;transform:translate(-50%,-50%);box-shadow:0 0 0 14px #1e8cff33}
+.top{position:relative;z-index:2;display:flex;justify-content:space-between;padding:14px}
+.rb{width:52px;height:52px;border-radius:50%;background:var(--card);border:0;color:var(--tx);font-size:22px}
+.sum{position:relative;z-index:2;margin:6px 0 0;background:#0b0c0d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+.sum b{font-size:40px;color:var(--ac)}
+.sum small{display:block;color:var(--mut)}
+.sp{flex:1}
+.sheet{position:relative;z-index:2;background:var(--panel)}
+.pre{padding:16px 18px;font-size:20px;font-weight:600}
+.sw{display:flex;justify-content:center;align-items:center;gap:18px;padding:18px;background:#0b0c0d;font-size:18px}
+.tg{width:84px;height:44px;border-radius:22px;background:#555;position:relative;border:0;transition:.2s}
+.tg::after{content:"";position:absolute;top:3px;right:3px;width:38px;height:38px;border-radius:50%;background:#fff;transition:.2s}
+.tg.on{background:var(--ok)}.tg.on::after{right:43px}
+#req{position:absolute;z-index:5;left:10px;right:10px;bottom:150px;background:var(--card);border-radius:18px;padding:16px;display:none;box-shadow:0 8px 30px #000a}
+#req h3{margin:0 0 8px;font-size:22px}
+#req .row{color:var(--mut);margin:4px 0}
+#req .bar{height:5px;background:#444;border-radius:3px;margin:10px 0;overflow:hidden}
+#req .bar i{display:block;height:100%;background:var(--ac);width:100%}
+.btns{display:flex;gap:10px;margin-top:10px}
+.btn{flex:1;border:0;border-radius:12px;padding:14px;font-size:18px;color:#fff;background:var(--ac)}
+.btn.no{background:#3a3d42}.btn.ok{background:var(--ok)}.btn.bad{background:var(--bad)}
+#drawer{position:absolute;z-index:8;top:0;bottom:0;right:0;width:78%;background:var(--panel);transform:translateX(100%);transition:.25s;padding:20px 0}
+#drawer.open{transform:none}
+#scrim{position:absolute;z-index:7;inset:0;background:#0009;display:none}
+.mi{display:flex;align-items:center;gap:14px;padding:18px 22px;font-size:20px;border:0;background:none;color:var(--tx);width:100%;text-align:right}
+.mi span{margin-inline-start:auto;color:var(--mut);font-size:16px}
+.page{position:absolute;z-index:9;inset:0;background:var(--bg);display:none;flex-direction:column;overflow:auto;padding:16px}
+.page.show{display:flex}
+.page h2{margin:4px 0 14px}
+.item{background:var(--card);border-radius:14px;padding:12px;margin-bottom:10px}
+.item .t{font-weight:600}.item .s{color:var(--mut);font-size:15px;margin:4px 0}
+input{width:100%;background:var(--panel);border:1px solid #3a3d42;border-radius:10px;padding:12px;color:var(--tx);font-size:17px;margin:5px 0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mut{color:var(--mut)}
+button:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+</head>
+<body>
+<div id="app">
+ <div id="map"><div id="me"></div></div>
+ <div class="top">
+  <button class="rb" id="menu" aria-label="القائمة">☰</button>
+  <button class="rb" onclick="openPage('wallet')" aria-label="المحفظة">👛</button>
+ </div>
+ <div class="sum">
+  <div><div style="font-size:22px;font-weight:700">إجمالي اليوم</div>
+   <small><span id="nTrips">0</span> رحلة</small><small><span id="nKm">0</span> كم</small><small><span id="nMin">0</span> دقيقة متصل</small></div>
+  <div style="text-align:left"><b id="earn">0</b> <b style="font-size:26px">SYP</b><small>شاملة الرسوم</small></div>
+ </div>
+ <div class="sp"></div>
+ <div id="req">
+  <h3 id="rPrice"></h3>
+  <div class="row" id="rFrom"></div><div class="row" id="rTo"></div><div class="row" id="rInfo"></div>
+  <div class="bar"><i id="rBar"></i></div>
+  <div class="btns"><button class="btn no" onclick="decline()">رفض</button><button class="btn ok" onclick="accept()">قبول</button></div>
+ </div>
+ <div class="sheet">
+  <div class="pre">الطلبات المسبقة (<span id="nPre">0</span>)</div>
+  <div class="sw"><span>متصل</span><button class="tg" id="tg" aria-label="تبديل الاتصال"></button><span class="mut">غير متصل</span></div>
+ </div>
+ <div id="scrim"></div>
+ <div id="drawer">
+  <button class="mi" onclick="openPage('profile')">👤 الملف التعريفي <span>★ 4.90</span></button>
+  <button class="mi" onclick="openPage('notes')">🔔 الإشعارات</button>
+  <button class="mi" onclick="openPage('wallet')">👛 المحفظة <span id="wBal">0 SYP</span></button>
+  <button class="mi" onclick="openPage('orders')">📖 الطلبات الحديثة</button>
+  <button class="mi" onclick="openPage('manage')">⚙️ تعديل الطلبات</button>
+  <button class="mi" onclick="openPage('settings')">🛠 الإعدادات</button>
+ </div>
+ <div class="page" id="p-manage">
+  <h2>تعديل الطلبات</h2>
+  <div id="list"></div>
+  <div class="item">
+   <div class="t" id="fTitle">طلب جديد</div>
+   <input id="fFrom" placeholder="نقطة الانطلاق">
+   <input id="fTo" placeholder="الوجهة">
+   <div class="g2"><input id="fPrice" type="number" placeholder="السعر SYP"><input id="fKm" type="number" step="0.1" placeholder="المسافة كم"></div>
+   <div class="g2"><input id="fMin" type="number" placeholder="الوقت بالدقائق"><input id="fPre" type="number" placeholder="طلب مسبق؟ 1 أو 0" value="0"></div>
+   <div class="btns"><button class="btn" onclick="saveReq()">حفظ</button><button class="btn no" onclick="resetForm()">إلغاء</button></div>
+  </div>
+  <button class="btn no" onclick="closePage()">رجوع</button>
+ </div>
+ <div class="page" id="p-orders"><h2>الطلبات الحديثة</h2><div id="done"></div><button class="btn no" onclick="closePage()">رجوع</button></div>
+ <div class="page" id="p-wallet"><h2>المحفظة</h2><div class="item"><div class="s">الرصيد</div><div class="t" style="font-size:30px" id="wBal2">0 SYP</div></div><button class="btn no" onclick="closePage()">رجوع</button></div>
+ <div class="page" id="p-profile"><h2>الملف التعريفي</h2><div class="item"><input id="pName" placeholder="اسم الكابتن"><div class="s">التقييم ★ 4.90</div></div><button class="btn" onclick="saveName()">حفظ</button><button class="btn no" style="margin-top:10px" onclick="closePage()">رجوع</button></div>
+ <div class="page" id="p-notes"><h2>الإشعارات</h2><div class="item mut">لا توجد إشعارات جديدة</div><button class="btn no" onclick="closePage()">رجوع</button></div>
+ <div class="page" id="p-settings"><h2>الإعدادات</h2><div class="item"><div class="s">مدة عرض الطلب بالثواني</div><input id="sSec" type="number" value="15"></div><div class="item"><button class="btn bad" onclick="resetAll()">مسح كل البيانات</button></div><button class="btn no" onclick="closePage()">رجوع</button></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const def={reqs:[
+ {id:1,from:"المزة - أوتوستراد",to:"باب توما",price:18000,km:6.2,min:18,pre:0},
+ {id:2,from:"المالكي",to:"جامعة دمشق",price:9500,km:3.1,min:10,pre:0},
+ {id:3,from:"كفرسوسة",to:"مطار دمشق الدولي",price:65000,km:28,min:40,pre:1}],
+ done:[],earn:0,km:0,trips:0,name:"",editing:null};
+let S;
+try{S=JSON.parse(localStorage.getItem("cap")||"null")||def}catch(e){S=def}
+let online=false,cur=null,timer=null,tick=null,mins=0;
+function save(){try{localStorage.setItem("cap",JSON.stringify(S))}catch(e){}}
+function fmt(n){return Number(n).toLocaleString("ar-SY")}
+function render(){
+ $("earn").textContent=fmt(S.earn);$("nTrips").textContent=S.trips;$("nKm").textContent=S.km.toFixed(1);$("nMin").textContent=mins;
+ $("nPre").textContent=S.reqs.filter(r=>r.pre).length;
+ const b=fmt(S.earn)+" SYP";$("wBal").textContent=b;$("wBal2").textContent=b;
+ $("list").innerHTML=S.reqs.length?S.reqs.map(r=>`<div class="item"><div class="t">${esc(r.from)} ← ${esc(r.to)}</div><div class="s">${fmt(r.price)} SYP · ${r.km} كم · ${r.min} د${r.pre?" · مسبق":""}</div><div class="btns"><button class="btn" onclick="edit(${r.id})">تعديل</button><button class="btn bad" onclick="del(${r.id})">حذف</button></div></div>`).join(""):'<div class="item mut">لا توجد طلبات. أضف طلباً من الأسفل.</div>';
+ $("done").innerHTML=S.done.length?S.done.slice().reverse().map(r=>`<div class="item"><div class="t">${esc(r.from)} ← ${esc(r.to)}</div><div class="s">${fmt(r.price)} SYP</div></div>`).join(""):'<div class="item mut">لا توجد رحلات بعد</div>';
+ $("pName").value=S.name;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function setOnline(v){online=v;$("tg").classList.toggle("on",v);clearTimeout(timer);$("req").style.display="none";cur=null;
+ clearInterval(tick);if(v){tick=setInterval(()=>{mins++;render()},60000);timer=setTimeout(next,2500)}}
+function next(){if(!online)return;const q=S.reqs.filter(r=>!r.pre);if(!q.length){timer=setTimeout(next,5000);return}
+ cur=q[Math.floor(Math.random()*q.length)];
+ $("rPrice").textContent=fmt(cur.price)+" SYP";$("rFrom").textContent="من: "+cur.from;$("rTo").textContent="إلى: "+cur.to;$("rInfo").textContent=cur.km+" كم · "+cur.min+" دقيقة";
+ $("req").style.display="block";const sec=Math.max(5,+$("sSec").value||15);const bar=$("rBar");
+ bar.style.transition="none";bar.style.width="100%";bar.offsetWidth;bar.style.transition="width "+sec+"s linear";bar.style.width="0";
+ timer=setTimeout(decline,sec*1000)}
+function decline(){clearTimeout(timer);$("req").style.display="none";cur=null;if(online)timer=setTimeout(next,4000)}
+function accept(){if(!cur)return;clearTimeout(timer);S.earn+=+cur.price;S.km+=+cur.km;S.trips++;S.done.push(cur);save();$("req").style.display="none";cur=null;render();if(online)timer=setTimeout(next,6000)}
+$("tg").onclick=()=>setOnline(!online);
+function toggleDrawer(o){$("drawer").classList.toggle("open",o);$("scrim").style.display=o?"block":"none"}
+$("menu").onclick=()=>toggleDrawer(true);$("scrim").onclick=()=>toggleDrawer(false);
+function openPage(n){toggleDrawer(false);document.querySelectorAll(".page").forEach(p=>p.classList.remove("show"));$("p-"+n).classList.add("show");render()}
+function closePage(){document.querySelectorAll(".page").forEach(p=>p.classList.remove("show"))}
+function edit(id){const r=S.reqs.find(x=>x.id===id);S.editing=id;$("fTitle").textContent="تعديل الطلب";$("fFrom").value=r.from;$("fTo").value=r.to;$("fPrice").value=r.price;$("fKm").value=r.km;$("fMin").value=r.min;$("fPre").value=r.pre}
+function resetForm(){S.editing=null;$("fTitle").textContent="طلب جديد";["fFrom","fTo","fPrice","fKm","fMin"].forEach(i=>$(i).value="");$("fPre").value=0}
+function saveReq(){if(!$("fFrom").value.trim()||!$("fTo").value.trim()||!$("fPrice").value){alert("أدخل الانطلاق والوجهة والسعر");return}
+ const r={id:S.editing||Date.now(),from:$("fFrom").value.trim(),to:$("fTo").value.trim(),price:+$("fPrice").value,km:+$("fKm").value||0,min:+$("fMin").value||0,pre:+$("fPre").value?1:0};
+ const i=S.reqs.findIndex(x=>x.id===r.id);if(i>=0)S.reqs[i]=r;else S.reqs.push(r);save();resetForm();render()}
+function del(id){S.reqs=S.reqs.filter(r=>r.id!==id);save();render()}
+function saveName(){S.name=$("pName").value;save();closePage()}
+function resetAll(){if(confirm("مسح كل البيانات؟")){S=JSON.parse(JSON.stringify(def));save();render();closePage()}}
+render();
+try{if("serviceWorker"in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js")}catch(e){}
+</script>
+</body>
+</html>
